@@ -6,8 +6,18 @@ namespace FrequencyDomainCanvas.Controls
 {
     public class FrequencyDomainCanvas : UserControl
     {
-        public event EventHandler<MouseEnterEventArgs> OnMouseEnterItem = delegate { };
+        public event EventHandler<MouseHoverEventArgs> OnMouseEnterItem = delegate { };
         public event EventHandler<ActualWidthChangeEventArgs> OnActualWidthChange = delegate { };
+        private Rectangle? _HoverRange = null;
+        protected Rectangle? HoverRange
+        {
+            get => _HoverRange;
+            set
+            {
+                _HoverRange = value;
+                Invalidate();
+            }
+        }
         public class FrequencyDomainCanvasItemCollection : IEnumerable<FrequencyDomainCanvasItem>
         {
             private readonly HashSet<FrequencyDomainCanvasItem> _InnerCollection = new();
@@ -75,20 +85,46 @@ namespace FrequencyDomainCanvas.Controls
         }
         public class FrequencyDomainCanvasItem
         {
-            public int Frequency { get; private set; }
-            public double Value { get; private set; }
+            private int _Frequency;
+            public int Frequency
+            {
+                get=> _Frequency;
+                set
+                {
+                    _Frequency = value;
+                    _ParentControl?.Invalidate();
+                }
+            }
+            private double _Value;
+            public double Value
+            {
+                get => _Value;
+                set
+                {
+                    if (value < 0 || value > 1)
+                        throw new Exception("value must be between 0 and 1");
+                    _Value = value;
+                    _ParentControl?.Invalidate();
+                }
+            }
             public Color ForegroundColor { get; set; } = Color.Red;
+            private FrequencyDomainCanvas? _ParentControl;
             public FrequencyDomainCanvasItem(int freq, double val)
             {
-                if (val < 0 || val > 1)
-                    throw new ArgumentOutOfRangeException(nameof(val), val, "must be between 0 and 1");
                 Frequency = freq;
                 Value = val;
             }
+            public FrequencyDomainCanvasItem()
+            {
+
+            }
         }
-        private int _SplitDistance = 3;
-        private int _ItemWidth = 5;
+        private int _SplitDistance = 5;
+        private int _ItemWidth = 8;
         private int _ScrollOffset = 0;
+
+        
+
         public int ScrollOffset
         {
             get => _ScrollOffset;
@@ -116,6 +152,27 @@ namespace FrequencyDomainCanvas.Controls
             }
         }
         private int _ActualWidth;
+
+        /// <summary>
+        /// 双击创建项
+        /// </summary>
+        [Description("双击创建项")]
+        public bool DoubleClickCreate { get; set; }
+        public event EventHandler<MouseItemClickArgs> OnMouseItemCLick = delegate { };
+
+
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            if (DoubleClickCreate&&e.Button == MouseButtons.Left)
+            {
+                HoverRange = null;
+                int freq = (e.Location.X+ScrollOffset) / (SplitDistance + ItemWidth);
+                double val = (Height - e.Location.Y) / (double)Height;
+                if (e.Location.X % (SplitDistance + ItemWidth) < ItemWidth)
+                    Items.Add(new FrequencyDomainCanvasItem(freq, val));
+            }
+        }
 
         /// <summary>
         /// 最大频率，单位Hz
@@ -159,14 +216,20 @@ namespace FrequencyDomainCanvas.Controls
             Items = new FrequencyDomainCanvasItemCollection(this);
             BackColor = Color.AliceBlue;
             _ActualWidth = Width;
+            DoubleBuffered = true;
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            int freq = e.Location.X / (SplitDistance + ItemWidth);
+            int freq = (e.Location.X + ScrollOffset) / (SplitDistance + ItemWidth);
             if (e.Location.X % (SplitDistance + ItemWidth) < ItemWidth)
             {
-                OnMouseEnterItem(this, new MouseEnterEventArgs(freq, (Height - e.Location.Y) / (double)Height));
+                OnMouseEnterItem(this, new MouseHoverEventArgs(freq, (Height - e.Location.Y) / (double)Height));
+                HoverRange = new Rectangle(new Point((SplitDistance+ItemWidth)*freq-ScrollOffset,e.Location.Y), new Size(ItemWidth, Height - e.Location.Y));
+            }
+            else
+            {
+                HoverRange = null;
             }
         }
 
@@ -179,6 +242,11 @@ namespace FrequencyDomainCanvas.Controls
             }
         }
 
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            HoverRange = null;
+        }
 
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -191,10 +259,13 @@ namespace FrequencyDomainCanvas.Controls
                 graphics.FillRectangle(brush, new Rectangle(new Point((ItemWidth + SplitDistance) * item.Frequency - _ScrollOffset, Convert.ToInt32(Height * (1 - item.Value))), new Size(ItemWidth, Convert.ToInt32(Height * item.Value))));
                 graphics.DrawString($"{item.Frequency}", new Font(FontFamily.GenericSansSerif, 10), brush, new PointF((ItemWidth + SplitDistance) * item.Frequency - _ScrollOffset, Convert.ToSingle(Height * (1 - item.Value) - 20)));
             }
-
-
+            if (_HoverRange != null)
+            {
+                graphics.FillRectangle(new SolidBrush(Color.White), _HoverRange.Value);
+            }
 
         }
+
 
 
     }

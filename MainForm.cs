@@ -10,7 +10,6 @@ namespace ChartTest
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-
             frequencyDomainCanvas1.OnMouseEnterItem += (sender, e) =>
             {
                 toolStripStatusLabel_Status.Text = $"({e.Frequency}Hz,{e.Value:0.##})";

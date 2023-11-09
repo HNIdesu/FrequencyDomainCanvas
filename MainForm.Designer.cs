@@ -53,6 +53,7 @@ namespace ChartTest
             // frequencyDomainCanvas1
             // 
             frequencyDomainCanvas1.BackColor = Color.AliceBlue;
+            frequencyDomainCanvas1.DoubleClickCreate = true;
             frequencyDomainCanvas1.ItemWidth = 5;
             frequencyDomainCanvas1.Location = new Point(0, 0);
             frequencyDomainCanvas1.Name = "frequencyDomainCanvas1";
@@ -79,7 +80,7 @@ namespace ChartTest
             Controls.Add(frequencyDomainCanvas1);
             Controls.Add(statusStrip1);
             Name = "MainForm";
-            Text = "Form1";
+            Text = "频域显示";
             Load += MainForm_Load;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
