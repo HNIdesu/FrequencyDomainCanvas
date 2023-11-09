@@ -16,15 +16,25 @@ namespace ChartTest
             };
             frequencyDomainCanvas1.OnActualWidthChange += (sender, e) =>
             {
-                hScrollBar1.Maximum = frequencyDomainCanvas1.ActualWidth - frequencyDomainCanvas1.Width;
+                int value = frequencyDomainCanvas1.ActualWidth - frequencyDomainCanvas1.Width;
+                if (value < 0) value = 1;
+                hScrollBar1.Maximum = value;
             };
-            hScrollBar1.Scroll += (sender, e) =>
-            {
-                frequencyDomainCanvas1.ScrollOffset = e.NewValue;
-            };
-            frequencyDomainCanvas1.Items.Add(new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(0, 0.5));
-            frequencyDomainCanvas1.Items.Add(new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(100, 0.5));
-            frequencyDomainCanvas1.Items.Add(new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(1000, 0.5));
+
+            frequencyDomainCanvas1.Items.AddRange(GetSamples());
+
+        }
+
+        private static IEnumerable<FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem> GetSamples()
+        {
+            for (int i = 0; i < 20000; i++)
+                yield return new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(i, 0.5);
+        }
+
+        private void hScrollBar1_ValueChanged(object sender, EventArgs e)
+        {
+            int value = ((HScrollBar)sender).Value;
+            frequencyDomainCanvas1.ScrollOffset = value;
         }
     }
 }

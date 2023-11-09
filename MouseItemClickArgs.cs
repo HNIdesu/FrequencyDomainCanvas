@@ -1,11 +1,10 @@
 ﻿
-
-namespace  FrequencyDomainCanvas.Controls
+namespace  FrequencyDomainCanvas
 {
     public class MouseItemClickArgs
     {
-        public FrequencyDomainCanvas.FrequencyDomainCanvasItem Item { get; private set; }
-        public MouseItemClickArgs(FrequencyDomainCanvas.FrequencyDomainCanvasItem item)
+        public Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem Item { get; private set; }
+        public MouseItemClickArgs(Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem item)
         {
             Item = item;
         }

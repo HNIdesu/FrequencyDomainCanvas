@@ -54,8 +54,12 @@ namespace ChartTest
             // 
             frequencyDomainCanvas1.BackColor = Color.AliceBlue;
             frequencyDomainCanvas1.DoubleClickCreate = true;
+            frequencyDomainCanvas1.ForeColor = Color.Red;
+            frequencyDomainCanvas1.ForegroundColor = Color.Red;
+            frequencyDomainCanvas1.HoverColor = Color.Chartreuse;
             frequencyDomainCanvas1.ItemWidth = 5;
             frequencyDomainCanvas1.Location = new Point(0, 0);
+            frequencyDomainCanvas1.MaxFrequency = 0;
             frequencyDomainCanvas1.Name = "frequencyDomainCanvas1";
             frequencyDomainCanvas1.ScrollOffset = 0;
             frequencyDomainCanvas1.Size = new Size(784, 519);
@@ -64,12 +68,13 @@ namespace ChartTest
             // 
             // hScrollBar1
             // 
+            hScrollBar1.LargeChange = 2;
             hScrollBar1.Location = new Point(0, 522);
+            hScrollBar1.Maximum = 1;
             hScrollBar1.Name = "hScrollBar1";
             hScrollBar1.Size = new Size(775, 17);
-            hScrollBar1.SmallChange = 5;
             hScrollBar1.TabIndex = 3;
-            hScrollBar1.Value = 1;
+            hScrollBar1.ValueChanged += hScrollBar1_ValueChanged;
             // 
             // MainForm
             // 
