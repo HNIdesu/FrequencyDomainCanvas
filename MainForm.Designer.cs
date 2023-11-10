@@ -59,8 +59,8 @@ namespace ChartTest
             frequencyDomainCanvas1.HoverColor = Color.Chartreuse;
             frequencyDomainCanvas1.ItemWidth = 5;
             frequencyDomainCanvas1.Location = new Point(0, 0);
-            frequencyDomainCanvas1.MaxFrequency = 0;
             frequencyDomainCanvas1.Name = "frequencyDomainCanvas1";
+            frequencyDomainCanvas1.Opacity = 100;
             frequencyDomainCanvas1.ScrollOffset = 0;
             frequencyDomainCanvas1.Size = new Size(784, 519);
             frequencyDomainCanvas1.SplitDistance = 3;

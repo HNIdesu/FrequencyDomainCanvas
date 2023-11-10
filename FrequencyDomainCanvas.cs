@@ -57,10 +57,9 @@ namespace FrequencyDomainCanvas.Controls
 
             public void Add(FrequencyDomainCanvasItem item)
             {
-                if (item.Frequency > _ParentControl.MaxFrequency)
-                    throw new ArgumentOutOfRangeException($"Frequency must be below MaxFrequency {_ParentControl.MaxFrequency}");
                 if (!_InnerCollection.Contains(item))
                 {
+                    item._ParentControl = _ParentControl;
                     if (item.Frequency > _ParentControl.MaxFrequency)
                         _ParentControl.MaxFrequency = item.Frequency;
                     _InnerCollection.Add(item);
@@ -74,14 +73,13 @@ namespace FrequencyDomainCanvas.Controls
                 {
                     if (!_InnerCollection.Contains(item))
                     {
+                        item._ParentControl = _ParentControl;
                         if (item.Frequency > _ParentControl.MaxFrequency)
                             _ParentControl.MaxFrequency = item.Frequency;
                         _InnerCollection.Add(item);
                     }
                 }
                 _ParentControl.Invalidate();
-
-
             }
 
 
@@ -89,7 +87,10 @@ namespace FrequencyDomainCanvas.Controls
             {
                 if (_InnerCollection.Contains(item))
                 {
+                    int freq = item.Frequency;
                     _InnerCollection.Remove(item);
+                    if (freq == _ParentControl.MaxFrequency)
+                        _ParentControl.MaxFrequency = _InnerCollection.Max(i => i.Frequency);
                     _ParentControl.Invalidate();
                 }
             }
@@ -130,10 +131,27 @@ namespace FrequencyDomainCanvas.Controls
             }
 
             private Color? _FontColor;
-
+            private byte? _Opacity;
+            public byte? Opacity
+            {
+                get => _Opacity==null?_ParentControl?.Opacity:_Opacity;
+                set
+                {
+                    if (value == null) return;
+                    if (value < 0 || value > 0xFF)
+                    {
+                        throw new Exception("Opacity must be a value between 0 and 255");
+                    }
+                    if (value != _Opacity)
+                    {
+                        _Opacity = value;
+                        _ParentControl?.Invalidate();
+                    }
+                }
+            }
             public Color? FontColor
             {
-                get => _FontColor;
+                get => _FontColor==null?_ParentControl?.ForeColor: _FontColor;
                 set
                 {
                     _FontColor = value;
@@ -143,7 +161,7 @@ namespace FrequencyDomainCanvas.Controls
             private Color? _FillColor;
             public Color? FillColor
             {
-                get => _FillColor;
+                get => _FillColor==null?_ParentControl?.ForegroundColor:_FillColor;
                 set
                 {
                     _FillColor = value;
@@ -151,7 +169,7 @@ namespace FrequencyDomainCanvas.Controls
                 }
             }
 
-            private readonly FrequencyDomainCanvas? _ParentControl;
+            internal FrequencyDomainCanvas? _ParentControl;
             public FrequencyDomainCanvasItem(int freq, double val)
             {
                 Frequency = freq;
@@ -186,7 +204,7 @@ namespace FrequencyDomainCanvas.Controls
             base.OnSizeChanged(e);
             _VisibleRange = new Rectangle(0, 0, Width, Height);
         }
-        public int ActualWidth=> ItemWidth * (MaxFrequency + 1) + MaxFrequency * SplitDistance + 100;
+        public int ActualWidth =>ItemWidth * (MaxFrequency + 1) + MaxFrequency * SplitDistance + 100;
 
         /// <summary>
         /// 双击创建项
@@ -234,12 +252,30 @@ namespace FrequencyDomainCanvas.Controls
             get => _SplitDistance;
             set
             {
-                if (value <= 0)
+                if (value <1)
                     _SplitDistance = 1;
                 else
                     _SplitDistance = value;
                 OnActualWidthChange(this, new ActualWidthChangeEventArgs(ActualWidth));
                 Invalidate();
+            }
+        }
+        private byte _Opacity = 0xFF;
+
+        public byte Opacity
+        {
+            get => _Opacity;
+            set
+            {
+                if (value < 0 || value > 0xFF)
+                {
+                    throw new Exception("Opacity must be a value between 0 and 255");
+                }
+                if (value != _Opacity)
+                {
+                    _Opacity = value;
+                    Invalidate();
+                }
             }
         }
 
@@ -252,8 +288,8 @@ namespace FrequencyDomainCanvas.Controls
             get => _ItemWidth;
             set
             {
-                if(value<=0)
-                    _ItemWidth = 1;
+                if(value<2)
+                    _ItemWidth = 2;
                 else
                     _ItemWidth = value;
                 OnActualWidthChange(this, new ActualWidthChangeEventArgs(ActualWidth));
@@ -283,14 +319,13 @@ namespace FrequencyDomainCanvas.Controls
             }
         }
         
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            if (ActualWidth > Width)
-            {
-                SplitDistance += Convert.ToInt32(e.Delta / 220f);
-                ItemWidth += Convert.ToInt32(e.Delta / 220f);
-            }
+            SplitDistance += Convert.ToInt32(e.Delta / 220f);
+            ItemWidth += Convert.ToInt32(e.Delta / 220f);
+            
         }
 
         protected override void OnMouseLeave(EventArgs e)
@@ -307,7 +342,8 @@ namespace FrequencyDomainCanvas.Controls
             if (_VisibleRange == null)
                 return;
             var graphics = e.Graphics;
-            Brush brush=new SolidBrush(ForegroundColor),fontBrush=new SolidBrush(ForeColor);
+
+
 
             foreach (var item in Items)
             {
@@ -318,12 +354,20 @@ namespace FrequencyDomainCanvas.Controls
                     new Size(ItemWidth, Convert.ToInt32(Height * item.Value)));
                 if (!_VisibleRange.Value.IntersectsWith(rect))
                     continue;
-                graphics.FillRectangle(item.FillColor!=null?new SolidBrush(item.FillColor.Value) :brush, rect);
-                graphics.DrawString($"{item.Frequency}", Font, item.FontColor != null ? new SolidBrush(item.FontColor.Value) : fontBrush, new PointF((ItemWidth + SplitDistance) * item.Frequency - _ScrollOffset, Convert.ToSingle(Height * (1 - item.Value) - 20)));
+                Brush fill_brush,font_brush;
+                {
+#pragma warning disable CS8629 // 可为 null 的值类型可为 null。
+                    fill_brush = new SolidBrush(Color.FromArgb(item.FillColor.Value.ToArgb() & (0x00FFFFFF | item.Opacity.Value << 24)));
+                    font_brush = new SolidBrush(item.FontColor.Value);
+#pragma warning restore CS8629 // 可为 null 的值类型可为 null。
+
+                }
+                graphics.FillRectangle(fill_brush, rect);
+                graphics.DrawString($"{item.Frequency}", Font, font_brush, new PointF((ItemWidth + SplitDistance) * item.Frequency - _ScrollOffset, Convert.ToSingle(Height * (1 - item.Value) - 20)));
             }
             if (_HoverRange != null)
             {
-                brush = new SolidBrush(Color.FromArgb(HoverColor.ToArgb() & 0x50FFFFFF));
+                Brush brush = new SolidBrush(Color.FromArgb(HoverColor.ToArgb() & 0x50FFFFFF));
                 graphics.FillRectangle(brush, _HoverRange.Value);
             }
 

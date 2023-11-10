@@ -27,8 +27,8 @@ namespace ChartTest
 
         private static IEnumerable<FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem> GetSamples()
         {
-            for (int i = 0; i < 20000; i++)
-                yield return new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(i, 0.5);
+            for (int i = 0; i <= 5; i++)
+                yield return new FrequencyDomainCanvas.Controls.FrequencyDomainCanvas.FrequencyDomainCanvasItem(i*1000, 0.5);
         }
 
         private void hScrollBar1_ValueChanged(object sender, EventArgs e)
