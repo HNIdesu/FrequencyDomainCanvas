@@ -24,7 +24,7 @@ namespace HNIdesu.Logger
                 throw new InvalidOperationException("The logger has already been opened");
             try
             {
-                if (_Process.HasExited) ;
+                if (_Process.HasExited);
             }
             catch (Exception)
             {

@@ -17,7 +17,7 @@ namespace ChartTest
             // see https://aka.ms/applicationconfiguration.
             //Logger.Open();
             ApplicationConfiguration.Initialize();
-            Application.Run(MainForm.Instance);
+            Application.Run(new MainForm());
             
         }
     }

@@ -1,5 +1,4 @@
-﻿
-namespace ChartTest
+﻿namespace HNIdesu.AudioExperiement
 {
     public class ActualWidthChangeEventArgs
     {

@@ -1,5 +1,4 @@
-﻿
-namespace  FrequencyDomainCanvas
+﻿namespace HNIdesu.AudioExperiement
 {
     public class MouseItemClickArgs
     {
